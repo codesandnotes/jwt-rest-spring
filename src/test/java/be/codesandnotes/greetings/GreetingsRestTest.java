@@ -1,6 +1,8 @@
 package be.codesandnotes.greetings;
 
+import be.codesandnotes.TestRestClient;
 import be.codesandnotes.IntegrationTestsApplication;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,15 +23,40 @@ import static org.junit.Assert.*;
 public class GreetingsRestTest {
 
     @Resource
-    private TestRestTemplate rest;
+    private TestRestTemplate restTemplate;
+
+    private TestRestClient restClient;
+
+    @Before
+    public void init() {
+        restClient = new TestRestClient(restTemplate);
+    }
 
     @Test
-    public void sendUnsecuredGreetings() {
+    public void returnUnsecuredGreetings() {
 
-        ResponseEntity response = rest.getForEntity("/rest/unsecure/greetings", GreetingWebObject.class);
+        ResponseEntity<GreetingWebObject> response
+                = restTemplate.getForEntity("/rest/unsecure/greetings", GreetingWebObject.class);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        GreetingWebObject responseBody = (GreetingWebObject) response.getBody();
-        assertEquals("Greetings and salutations!", responseBody.getMessage());
+        assertEquals("Greetings and salutations!", response.getBody().getMessage());
+    }
+
+    @Test
+    public void returnSecureGreetings() {
+
+        TestRestClient.Credentials credentials = restClient.login("user", "user");
+        ResponseEntity<GreetingWebObject> response = restClient.get("/rest/secure/greetings", credentials, GreetingWebObject.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("Greetings and salutations, user!", response.getBody().getMessage());
+    }
+
+    @Test
+    public void protectAccessToSecureGreetingsWhenUserIsNotLogged() {
+
+        ResponseEntity<GreetingWebObject> response = restTemplate.getForEntity("/rest/secure/greetings", GreetingWebObject.class);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 }
