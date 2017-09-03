@@ -2,7 +2,10 @@ package be.codesandnotes;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
 /**
@@ -17,9 +20,6 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 )
 @Configuration
 @EnableAutoConfiguration
-@PropertySource({
-        "classpath:security.test.properties"
-})
 public class IntegrationTestsApplication {
 
     @Bean
