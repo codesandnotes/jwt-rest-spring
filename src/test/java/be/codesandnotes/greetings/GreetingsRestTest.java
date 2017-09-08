@@ -45,7 +45,7 @@ public class GreetingsRestTest {
     @Test
     public void returnSecureGreetings() {
 
-        TestRestClient.Credentials credentials = restClient.login("user", "user");
+        TestRestClient.Credentials credentials = restClient.login("user", "password");
         ResponseEntity<GreetingWebObject> response = restClient.get("/rest/secure/greetings", credentials, GreetingWebObject.class);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
