@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
+import java.util.UUID;
 
 import static be.codesandnotes.security.SecurityConfiguration.*;
 
@@ -27,6 +28,7 @@ public class TokenBasedAuthenticationFilter extends UsernamePasswordAuthenticati
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
                                             Authentication authentication) throws IOException, ServletException {
         String token = Jwts.builder()
+                .setId(UUID.randomUUID().toString())
                 .setSubject(((User) authentication.getPrincipal()).getUsername())
                 .setExpiration(new Date(System.currentTimeMillis() + TOKEN_LIFETIME))
                 .signWith(SignatureAlgorithm.HS512, TOKEN_SECRET)

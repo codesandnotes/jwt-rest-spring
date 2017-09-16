@@ -13,13 +13,14 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 
 import javax.annotation.Resource;
 import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 
 @Configuration
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     static final long TOKEN_LIFETIME = 604_800_000;
     static final String TOKEN_PREFIX = "Bearer ";
-    static final String TOKEN_SECRET = "ThisIsOurSecretKeyToSignOurTokens";
+    static final String TOKEN_SECRET = Base64.getEncoder().encodeToString("ThisIsOurSecretKeyToSignOurTokens".getBytes());
 
     @Resource
     private AuthenticationEntryPoint authenticationEntryPoint;
