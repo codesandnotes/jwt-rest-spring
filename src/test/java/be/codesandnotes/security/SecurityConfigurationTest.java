@@ -1,15 +1,17 @@
 package be.codesandnotes.security;
 
 import be.codesandnotes.IntegrationTestsApplication;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
@@ -27,11 +29,11 @@ public class SecurityConfigurationTest {
     private TestRestTemplate rest;
 
     @Test
-    public void authenticateAnExistingUser() {
+    public void authenticateAnExistingUser() throws IOException {
         String username = "user";
         String password = "password";
 
-        List<String> cookies = rest.execute(
+        ClientHttpResponse clientHttpResponse = rest.execute(
                 "/login",
                 POST,
                 request -> {
@@ -40,13 +42,18 @@ public class SecurityConfigurationTest {
                     body.flush();
                     body.close();
 
-                }, response -> {
-                    HttpHeaders loginHeaders = response.getHeaders();
-                    return loginHeaders.get(HttpHeaders.SET_COOKIE);
-                }
+                },
+                response -> response
         );
 
-        assertEquals(1, cookies.size());
-        assertTrue(cookies.get(0).contains("JSESSIONID="));
+        assertNotNull(clientHttpResponse);
+        assertEquals(HttpStatus.OK, clientHttpResponse.getStatusCode());
+
+        assertEquals(true, clientHttpResponse.getHeaders().containsKey(HttpHeaders.AUTHORIZATION));
+        List<String> authorizationTokens = clientHttpResponse.getHeaders().get(HttpHeaders.AUTHORIZATION);
+        assertEquals(1, authorizationTokens.size());
+
+        String authorizationToken = authorizationTokens.get(0);
+        assertEquals("success!", authorizationToken);
     }
 }

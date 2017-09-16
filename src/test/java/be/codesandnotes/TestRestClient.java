@@ -7,8 +7,6 @@ import org.springframework.http.ResponseEntity;
 
 import java.io.OutputStream;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpMethod.*;
 
@@ -23,7 +21,7 @@ public class TestRestClient {
     public <T> ResponseEntity<T> get(String restPath, Credentials credentials, Class<T> responseType) {
 
         HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add(HttpHeaders.COOKIE, "JSESSIONID=" + credentials.jSessionId);
+        httpHeaders.add(HttpHeaders.AUTHORIZATION, credentials.token);
 
         return rest.exchange(restPath, GET, new HttpEntity<>(httpHeaders), responseType);
     }
@@ -42,16 +40,9 @@ public class TestRestClient {
                 }, response -> {
                     Credentials credentials = null;
 
-                    HttpHeaders loginHeaders = response.getHeaders();
-                    List<String> cookies = loginHeaders.get(HttpHeaders.SET_COOKIE);
-
-                    if (cookies != null) {
-                        Map<String, String> cookiesMap = cookies.stream()
-                                .collect(Collectors.toMap((cookie) -> cookie.split("=")[0], (cookie) -> cookie.split("=")[1]));
-
-                        String jSessionId = cookiesMap.get("JSESSIONID").contains(";") ? cookiesMap.get("JSESSIONID").split(";")[0] : cookiesMap.get("JSESSIONID");
-
-                        credentials = new Credentials(jSessionId);
+                    List<String> authorizationTokens = response.getHeaders().get(HttpHeaders.AUTHORIZATION);
+                    if (authorizationTokens != null && authorizationTokens.size() > 0) {
+                        credentials = new Credentials(authorizationTokens.get(0));
                     }
 
                     return credentials;
@@ -60,10 +51,9 @@ public class TestRestClient {
     }
 
     public static class Credentials {
-        public String jSessionId;
-
-        Credentials(String jSessionId) {
-            this.jSessionId = jSessionId;
+        public String token;
+        Credentials(String token) {
+            this.token = token;
         }
     }
 }

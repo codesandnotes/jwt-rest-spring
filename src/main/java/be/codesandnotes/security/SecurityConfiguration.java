@@ -10,10 +10,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
-import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 
 import javax.annotation.Resource;
 import java.security.NoSuchAlgorithmException;
@@ -21,26 +17,11 @@ import java.security.NoSuchAlgorithmException;
 @Configuration
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-    public static final int PASSWORD_ENCODER_STRENGTH = 10;
-
     @Resource
     private AuthenticationEntryPoint authenticationEntryPoint;
 
-    private AuthenticationFailureHandler authenticationFailureHandler = new SimpleUrlAuthenticationFailureHandler();
-
-    @Resource
-    private AuthenticationSuccessHandler authenticationSuccessHandler;
-
-    @Resource
-    private LogoutSuccessHandler logoutSuccessHandler;
-
     @Resource
     private MyUserDetailsService myUserDetailsService;
-
-    // Should we really disable the defaults?
-//    public SecurityConfiguration() {
-//        super(true);
-//    }
 
     @Bean
     public PasswordEncoder passwordEncoder() throws NoSuchAlgorithmException {
@@ -57,15 +38,16 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         http.csrf().disable();
 
         http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint);
-        http.formLogin().successHandler(authenticationSuccessHandler);
-        http.formLogin().failureHandler(authenticationFailureHandler);
 
-        http.logout().logoutUrl("/logout").logoutSuccessHandler(logoutSuccessHandler);
+        http
+                .httpBasic().disable()
+                .formLogin().disable()
+                .logout().disable()
+                .addFilter(new TokenBasedAuthenticationFilter(authenticationManager()))
+                .addFilter(new TokenBasedAuthorizationFilter(authenticationManager()));
 
         http.authorizeRequests()
                 .antMatchers("/rest/unsecure/**").permitAll()
                 .antMatchers("/**").authenticated();
-
-//        http.addFilterBefore(new StatelessAuthenticationFilter(tokenAuthenticationService()), UsernamePasswordAuthenticationFilter.class);
     }
 }

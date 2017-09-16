@@ -2,7 +2,6 @@ package be.codesandnotes.greetings;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
@@ -23,9 +22,5 @@ public class GreetingsRest {
     @RequestMapping(path = "/secure/greetings", method = GET, produces = APPLICATION_JSON_VALUE)
     ResponseEntity<GreetingWebObject> securedGreetings(Principal principal) {
         return ResponseEntity.ok(new GreetingWebObject("Greetings and salutations, " + principal.getName() + "!"));
-    }
-
-    ResponseEntity<GreetingWebObject> securedGreetings(String postGreetingsMessage) {
-        return null;
     }
 }
