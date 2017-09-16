@@ -17,6 +17,10 @@ import java.security.NoSuchAlgorithmException;
 @Configuration
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
+    static final long TOKEN_LIFETIME = 604_800_000;
+    static final String TOKEN_PREFIX = "Bearer ";
+    static final String TOKEN_SECRET = "ThisIsOurSecretKeyToSignOurTokens";
+
     @Resource
     private AuthenticationEntryPoint authenticationEntryPoint;
 

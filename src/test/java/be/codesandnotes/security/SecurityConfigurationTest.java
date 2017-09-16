@@ -54,6 +54,6 @@ public class SecurityConfigurationTest {
         assertEquals(1, authorizationTokens.size());
 
         String authorizationToken = authorizationTokens.get(0);
-        assertEquals("success!", authorizationToken);
+        assertEquals(true, authorizationToken.startsWith("Bearer "));
     }
 }
