@@ -10,6 +10,9 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.access.AccessDeniedHandlerImpl;
+import org.springframework.security.web.csrf.CsrfFilter;
 
 import javax.annotation.Resource;
 import java.security.NoSuchAlgorithmException;
@@ -18,6 +21,9 @@ import java.util.Base64;
 @Configuration
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
+    public static final String CSRF_COOKIE = "CSRF-TOKEN";
+    public static final String CSRF_HEADER = "X-CSRF-TOKEN";
+
     static final long TOKEN_LIFETIME = 604_800_000;
     static final String TOKEN_PREFIX = "Bearer ";
     static final String TOKEN_SECRET = Base64.getEncoder().encodeToString("ThisIsOurSecretKeyToSignOurTokens".getBytes());
@@ -25,8 +31,15 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Resource
     private AuthenticationEntryPoint authenticationEntryPoint;
 
+    private StatelessCsrfFilter statelessCsrfFilter = new StatelessCsrfFilter();
+
     @Resource
     private MyUserDetailsService myUserDetailsService;
+
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        return new AccessDeniedHandlerImpl();
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() throws NoSuchAlgorithmException {
@@ -40,7 +53,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     protected void configure(HttpSecurity http) throws Exception {
 
-        http.csrf().disable();
+        http
+                .csrf().disable()
+                .addFilterBefore(statelessCsrfFilter, CsrfFilter.class);
 
         http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint);
 

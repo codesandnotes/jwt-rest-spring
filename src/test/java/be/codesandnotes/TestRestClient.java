@@ -1,5 +1,6 @@
 package be.codesandnotes;
 
+import be.codesandnotes.security.SecurityConfiguration;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -26,16 +27,24 @@ public class TestRestClient {
         return rest.exchange(restPath, GET, new HttpEntity<>(httpHeaders), responseType);
     }
 
-    public Credentials login(String username, String password) {
+    public Credentials login(String username, String password, String csrfToken) {
 
         return rest.execute(
                 "/login",
                 POST,
                 request -> {
+                    // Body
                     OutputStream body = request.getBody();
                     body.write(("username=" + username + "&password=" + password).getBytes());
                     body.flush();
                     body.close();
+
+                    // Headers
+                    HttpHeaders headers = request.getHeaders();
+                    if (csrfToken != null) {
+                        headers.set(HttpHeaders.COOKIE, SecurityConfiguration.CSRF_COOKIE + "=" + csrfToken);
+                        headers.set(SecurityConfiguration.CSRF_HEADER, csrfToken);
+                    }
 
                 }, response -> {
                     Credentials credentials = null;

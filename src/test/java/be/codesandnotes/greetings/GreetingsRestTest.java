@@ -13,6 +13,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
 
+import java.util.UUID;
+
 import static org.junit.Assert.*;
 
 @SpringBootTest(
@@ -21,6 +23,10 @@ import static org.junit.Assert.*;
 )
 @RunWith(SpringRunner.class)
 public class GreetingsRestTest {
+
+    private static final String USERNAME = "user";
+    private static final String PASSWORD = "password";
+    private static final String CSRF_TOKEN = UUID.randomUUID().toString();
 
     @Resource
     private TestRestTemplate restTemplate;
@@ -45,7 +51,7 @@ public class GreetingsRestTest {
     @Test
     public void returnSecureGreetings() {
 
-        TestRestClient.Credentials credentials = restClient.login("user", "password");
+        TestRestClient.Credentials credentials = restClient.login(USERNAME, PASSWORD, CSRF_TOKEN);
         ResponseEntity<GreetingWebObject> response = restClient.get("/rest/secure/greetings", credentials, GreetingWebObject.class);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
