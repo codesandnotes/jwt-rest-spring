@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.io.OutputStream;
 import java.util.List;
+import java.util.UUID;
 
 import static org.springframework.http.HttpMethod.*;
 
@@ -21,13 +22,24 @@ public class TestRestClient {
 
     public <T> ResponseEntity<T> get(String restPath, Credentials credentials, Class<T> responseType) {
 
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add(HttpHeaders.AUTHORIZATION, credentials.token);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.AUTHORIZATION, credentials.token);
 
-        return rest.exchange(restPath, GET, new HttpEntity<>(httpHeaders), responseType);
+        return rest.exchange(restPath, GET, new HttpEntity<>(headers), responseType);
     }
 
-    public Credentials login(String username, String password, String csrfToken) {
+    public <T> ResponseEntity<T> post(String restPath, Credentials credentials, Object body, Class<T> responseType, String csrfToken) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.AUTHORIZATION, credentials.token);
+        if (csrfToken != null) {
+            headers.set(HttpHeaders.COOKIE, SecurityConfiguration.CSRF_COOKIE + "=" + csrfToken);
+            headers.set(SecurityConfiguration.CSRF_HEADER, csrfToken);
+        }
+
+        return rest.exchange(restPath, POST, new HttpEntity<>(body, headers), responseType);
+    }
+
+    public Credentials login(String username, String password) {
 
         return rest.execute(
                 "/login",
@@ -41,10 +53,9 @@ public class TestRestClient {
 
                     // Headers
                     HttpHeaders headers = request.getHeaders();
-                    if (csrfToken != null) {
-                        headers.set(HttpHeaders.COOKIE, SecurityConfiguration.CSRF_COOKIE + "=" + csrfToken);
-                        headers.set(SecurityConfiguration.CSRF_HEADER, csrfToken);
-                    }
+                    String csrfToken = UUID.randomUUID().toString();
+                    headers.set(HttpHeaders.COOKIE, SecurityConfiguration.CSRF_COOKIE + "=" + csrfToken);
+                    headers.set(SecurityConfiguration.CSRF_HEADER, csrfToken);
 
                 }, response -> {
                     Credentials credentials = null;
@@ -61,7 +72,7 @@ public class TestRestClient {
 
     public static class Credentials {
         public String token;
-        Credentials(String token) {
+        public Credentials(String token) {
             this.token = token;
         }
     }

@@ -27,6 +27,7 @@ public class GreetingsRestTest {
     private static final String USERNAME = "user";
     private static final String PASSWORD = "password";
     private static final String CSRF_TOKEN = UUID.randomUUID().toString();
+    private static final Object BODY = null;
 
     @Resource
     private TestRestTemplate restTemplate;
@@ -51,7 +52,7 @@ public class GreetingsRestTest {
     @Test
     public void returnSecureGreetings() {
 
-        TestRestClient.Credentials credentials = restClient.login(USERNAME, PASSWORD, CSRF_TOKEN);
+        TestRestClient.Credentials credentials = restClient.login(USERNAME, PASSWORD);
         ResponseEntity<GreetingWebObject> response = restClient.get("/rest/secure/greetings", credentials, GreetingWebObject.class);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -64,5 +65,35 @@ public class GreetingsRestTest {
         ResponseEntity<GreetingWebObject> response = restTemplate.getForEntity("/rest/secure/greetings", GreetingWebObject.class);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    public void protectAccessToSecurePOSTGreetingWhenUserIsNotLogged() {
+
+        TestRestClient.Credentials credentials = new TestRestClient.Credentials(null);
+        ResponseEntity<GreetingWebObject> response = restClient.get("/rest/secure/greetings", credentials, GreetingWebObject.class);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    public void protectAccessToSecurePOSTGreetingWhenCSRFTokensAreNotSent() {
+
+        TestRestClient.Credentials credentials = restClient.login(USERNAME, PASSWORD);
+        ResponseEntity<GreetingWebObject> response = restClient.post("/rest/secure/greetings", credentials,
+                BODY, GreetingWebObject.class, null);
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+    }
+
+    @Test
+    public void returnSecurePOSTGreetings() {
+
+        TestRestClient.Credentials credentials = restClient.login(USERNAME, PASSWORD);
+        ResponseEntity<GreetingWebObject> response = restClient.post("/rest/secure/greetings", credentials,
+                BODY, GreetingWebObject.class, CSRF_TOKEN);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("Greetings and POST-salutations, user!", response.getBody().getMessage());
     }
 }

@@ -23,4 +23,9 @@ public class GreetingsRest {
     ResponseEntity<GreetingWebObject> securedGreetings(Principal principal) {
         return ResponseEntity.ok(new GreetingWebObject("Greetings and salutations, " + principal.getName() + "!"));
     }
+
+    @RequestMapping(path = "/secure/greetings", method = POST, produces = APPLICATION_JSON_VALUE)
+    ResponseEntity<GreetingWebObject> securedGreetingsPost(Principal principal) {
+        return ResponseEntity.ok(new GreetingWebObject("Greetings and POST-salutations, " + principal.getName() + "!"));
+    }
 }
