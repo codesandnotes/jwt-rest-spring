@@ -13,7 +13,7 @@ public class UsersConfiguration {
     private PasswordEncoder passwordEncoder;
 
     @Bean
-    public MyUserDetailsService usersDAO() {
+    public MyUserDetailsService myUserDetailsService() {
         return new MyUserDetailsService(passwordEncoder);
     }
 }
